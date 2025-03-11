@@ -1,0 +1,29 @@
+﻿Din personliga token för att använda API:et är: 3821dadd2be2c2d1dca7da9381f8bd91a1e9421e
+
+Adressen för att nyttja API:et är: https://bank.stuxberg.se/api/iban/SE4550000000058398257466/
+
+
+Exempel med jQuery
+$.ajax({
+   url: 'https://bank.stuxberg.se/api/iban/SE4550000000058398257466/',
+   type: 'GET',
+   contentType: 'application/json'
+   headers: {
+      'Authorization': 'Bearer 3821dadd2be2c2d1dca7da9381f8bd91a1e9421e'
+   },
+   success: function (result) {
+       // CallBack(result);
+   },
+   error: function (error) {
+   }
+});
+
+Exempel med Java
+
+URL url = new URL("https://bank.stuxberg.se/api/iban/SE4550000000058398257466/");
+HttpURLConnection http = (HttpURLConnection)url.openConnection();
+http.setRequestProperty("Accept", "application/json");
+http.setRequestProperty("Authorization", "Bearer 3821dadd2be2c2d1dca7da9381f8bd91a1e9421e");
+
+System.out.println(http.getResponseCode() + " " + http.getResponseMessage());
+http.disconnect();
