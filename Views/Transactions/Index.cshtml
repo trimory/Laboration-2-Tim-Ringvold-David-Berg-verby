@@ -21,6 +21,7 @@ else
             <th>Belopp</th>
             <th>Saldo</th>
             <th>Kategori</th>
+            <th>Redigera</th> <!-- Ny kolumn för redigering -->
         </tr>
         @foreach (var t in Model)
         {
@@ -32,6 +33,11 @@ else
                 <td>@t.Amount</td>
                 <td>@t.Balance</td>
                 <td>@t.Category</td>
+                <td>
+                    <a href="@Url.Action("Edit", "Transaction", new { id = t.TransactionID })">
+                        ✏️ Redigera
+                    </a>
+                </td>
             </tr>
         }
     </table>

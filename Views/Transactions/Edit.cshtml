@@ -1,0 +1,18 @@
+﻿@model Transaction
+
+<h2>Redigera Kategori</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="TransactionID" />
+
+    <label>Referens:</label>
+    <input asp-for="Reference" readonly /><br>
+
+    <label>Belopp:</label>
+    <input asp-for="Amount" readonly /><br>
+
+    <label for="Category">Kategori:</label>
+    <input asp-for="Category" required /><br>
+
+    <button type="submit">Spara</button>
+</form>

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 public class Transaction
 {
+    [Key]
     [JsonPropertyName("TransactionID")] // Matchar API:ets fältnamn
     public int TransactionID { get; set; }
 
@@ -21,6 +23,6 @@ public class Transaction
     [JsonPropertyName("Balance")]
     public decimal Balance { get; set; }
 
-    public string Category { get; set; } = "Övrigt";
+    public string Category { get; set; } = "Övrigt"; // Defaultkategori
 }
 
