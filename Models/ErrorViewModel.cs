@@ -1,4 +1,4 @@
-namespace Laboration_2_Tim_Ringvold__David_Berg_Överby.Models
+namespace Laboration2_MVC.Models
 {
     public class ErrorViewModel
     {
