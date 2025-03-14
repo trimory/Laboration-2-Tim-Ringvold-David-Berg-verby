@@ -1,8 +1,8 @@
-using Laboration_2_Tim_Ringvold__David_Berg_Överby.Models;
+using Laboration2MVC.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace Laboration_2_Tim_Ringvold__David_Berg_Överby.Controllers
+namespace Laboration2MVC.Controllers
 {
     public class HomeController : Controller
     {

@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Laboration_2_Tim_Ringvold__David_Berg_Överby</RootNamespace>
+    <RootNamespace>Laboration2MVC</RootNamespace>
   </PropertyGroup>
 
 </Project>
