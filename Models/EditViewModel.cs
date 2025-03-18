@@ -1,15 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace Laboration2MVC.Models
+﻿namespace Laboration2MVC.Models
 {
-    public class EditViewModel 
+    public class EditViewModel
     {
         public TransactionModel Transaction { get; set; } = new TransactionModel();
-
         public CustomCategoryModel CustomCategory { get; set; } = new CustomCategoryModel();
+        public List<ReferenceModel> ReferenceList { get; set; } = new List<ReferenceModel>();
 
-        public List<ReferenceModel> ReferenceList { get; set; } = new List<ReferenceModel>(); 
-
-
+        public List<string> SelectedCategories { get; set; } = new List<string>();
     }
 }

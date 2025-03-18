@@ -213,22 +213,26 @@ namespace Laboration2MVC.Models
 
             return references; 
         }
-        public async Task ReplaceReferences(string oldReference, string newReference)
+        public async Task ReplaceReferences(List<string> oldReferences, string newReference)
         {
             try
             {
                 await sqlite.OpenAsync();
-                using var replaceReferences = sqlite.CreateCommand();
-                replaceReferences.CommandText = "UPDATE transactions " +
-                    "SET Reference = @newReference, IsUserReferenceChanged = 1 " + 
-                    "WHERE Reference = @oldReference"; 
-                replaceReferences.Parameters.AddWithValue("@newReference", newReference);
-                replaceReferences.Parameters.AddWithValue("@oldReference", oldReference);
-                await replaceReferences.ExecuteNonQueryAsync();
+
+                foreach (var oldReference in oldReferences)
+                {
+                    using var replaceReferences = sqlite.CreateCommand();
+                    replaceReferences.CommandText = "UPDATE transactions " +
+                        "SET Reference = @newReference, IsUserReferenceChanged = 1 " +
+                        "WHERE Reference = @oldReference";
+                    replaceReferences.Parameters.AddWithValue("@newReference", newReference);
+                    replaceReferences.Parameters.AddWithValue("@oldReference", oldReference);
+                    await replaceReferences.ExecuteNonQueryAsync();
+                }
             }
             catch (Exception)
             {
-                Console.WriteLine("could not replace references");
+                Console.WriteLine("❌ Could not replace references");
                 throw;
             }
             finally

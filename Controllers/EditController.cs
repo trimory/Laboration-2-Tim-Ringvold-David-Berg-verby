@@ -1,5 +1,4 @@
 ﻿using Laboration2MVC.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -9,7 +8,6 @@ namespace Laboration2MVC.Controllers
     {
         private readonly DatabaseModel dbModel;
 
-        // ✅ Inject DatabaseModel via Dependency Injection
         public EditController(DatabaseModel importDbModel)
         {
             dbModel = importDbModel;
@@ -20,14 +18,12 @@ namespace Laboration2MVC.Controllers
         {
             var model = new EditViewModel
             {
-                ReferenceList = await dbModel.GetUniqueReferences() 
-            }; 
+                ReferenceList = await dbModel.GetUniqueReferences() // ✅ Fetch unique references
+            };
 
             return View(model);
         }
 
-
-        // ✅ Handles category creation (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditView(EditViewModel model)
@@ -35,25 +31,28 @@ namespace Laboration2MVC.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["Message"] = "Invalid input. Please try again.";
-                return View(model); // Return the view with validation errors
+                model.ReferenceList = await dbModel.GetUniqueReferences(); // ✅ Reload options if form fails
+                return View(model);
             }
 
             try
             {
-                Console.WriteLine($"Received form data: {model.CustomCategory.OriginalCategory} -> {model.CustomCategory.OriginalCategory}");
+                Console.WriteLine($"Received form data: {string.Join(", ", model.CustomCategory.OriginalCategories)} -> {model.CustomCategory.NewCategory}");
 
-                await dbModel.CreateCustomCategory(model.CustomCategory.OriginalCategory, model.CustomCategory.NewCategory);
-                TempData["Message"] = $"✅ Category '{model.CustomCategory.OriginalCategory}' mapped to '{model.CustomCategory.NewCategory}' successfully!";
-                await dbModel.ReplaceReferences(model.CustomCategory.OriginalCategory, model.CustomCategory.NewCategory);
+                await dbModel.CreateCustomCategory(model.CustomCategory.OriginalCategories[0], model.CustomCategory.NewCategory);
+                TempData["Message"] = $"✅ Categories mapped to '{model.CustomCategory.NewCategory}' successfully!";
+                await dbModel.ReplaceReferences(model.CustomCategory.OriginalCategories, model.CustomCategory.NewCategory);
+
+                // ✅ Keep selected categories highlighted
+                model.SelectedCategories = model.CustomCategory.OriginalCategories;
             }
             catch
             {
-                TempData["Message"] = "❌ Error: Could not create category mapping.";
+                TempData["Message"] = "❌ Error: Could not create category mappings.";
             }
 
-            return RedirectToAction(nameof(EditView)); 
+            model.ReferenceList = await dbModel.GetUniqueReferences(); // ✅ Ensure dropdown options reload
+            return View(model);
         }
-
-        
     }
 }

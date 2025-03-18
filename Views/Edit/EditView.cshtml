@@ -6,34 +6,21 @@
 }
 
 <!DOCTYPE html>
-
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>EditView</title>
-    <script>
-        function removeSelectedOption() {
-            var dropdown = document.getElementById("originalCategoryDropdown");
-            var selectedOption = dropdown.options[dropdown.selectedIndex];
-
-            if (selectedOption.value !== "") {
-                selectedOption.remove(); // ✅ Remove the selected option from the dropdown
-            }
-        }
-    </script>
+    <!-- Removed the <script> tag since it's no longer needed -->
 </head>
 <body>
-
     <h4>Edit Category</h4>
     <hr />
     <div class="row">
         <div class="col-md-4">
             <form asp-action="EditView" method="post">
-                <!-- ✅ Dropdown for Selecting an Original Category -->
                 <div class="form-group">
-                    <label for="originalCategoryDropdown">Select Original Category:</label>
-                    <select id="originalCategoryDropdown" name="CustomCategory.OriginalCategory" class="form-control" onchange="removeSelectedOption()">
-                        <option value="" disabled selected>-- Choose a Category --</option>
+                    <label for="originalCategoryDropdown">Select Original Categories(Use ctrl while clicking to add more than one category):</label>
+                    <select id="originalCategoryDropdown" name="CustomCategory.OriginalCategories" class="form-control" multiple size="5">
                         @foreach (var reference in Model.ReferenceList)
                         {
                             <option value="@reference.Reference">@reference.Reference</option>
@@ -46,7 +33,7 @@
                     <input asp-for="CustomCategory.NewCategory" class="form-control" required />
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save Category</button>
+                <button type="submit" class="btn btn-primary">Save Categories</button>
             </form>
         </div>
     </div>
@@ -54,6 +41,5 @@
     <a asp-controller="API" asp-action="TransactionView">
         Återvänd till transaktioner
     </a>
-
 </body>
 </html>
