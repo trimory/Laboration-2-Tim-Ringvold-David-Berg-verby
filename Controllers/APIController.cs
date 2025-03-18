@@ -22,6 +22,8 @@ namespace Laboration2MVC.Controllers
             if(System.IO.File.Exists(dbModel.databaseFilePath))
             {
                 var dbResult = await dbModel.GetTransactions();
+                await dbModel.ApplyCustomRulesToTransactions();
+
                 ViewData["apiResult"] = dbResult;
             }
 
@@ -50,6 +52,7 @@ namespace Laboration2MVC.Controllers
                             foreach (var transaction in jsonResultDeserialized)
                             {
                                 await dbModel.InsertTransaction(transaction);
+
                             }
                         }
                         ViewData["apiResult"] = jsonResultDeserialized;

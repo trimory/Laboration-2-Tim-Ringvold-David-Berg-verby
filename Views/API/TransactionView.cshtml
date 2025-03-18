@@ -10,7 +10,7 @@
     <h1 class="display-3">Välkommen till Stuxnets bank!</h1
         <h2>
         <a asp-controller="Edit" asp-action="EditView">
-            Klicka här för att ta dig till din transaktionshistorik
+            Klicka här att tilldela kategorier till olika betalningsreferenser
 
         </a>
     </h2>
@@ -25,9 +25,10 @@
                     <th>Transaktions-ID</th>
                     <th>Bokningsdatum</th>
                     <th>Transaktionsdatum</th>
-                    <th>Kategori(* indikerar ändring av användaren)</th>
+                    <th>Referens</th>
                     <th>Belopp</th>
                     <th>Saldo efter transaktion</th>
+                    <th>Kategori</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,16 +41,13 @@
                         <td>@transaction.BookingDate</td>
                         <td>@transaction.TransactionDate</td>
                         <td>@transaction.Reference
-                            @if(transaction.IsUserReferenceChanged == true)
-                            {
-                                <span>*</span>
-                            }
-
+                            
 
                         </td>
                         
                         <td>@transaction.Amount</td>
                         <td>@transaction.Balance</td>
+                        <td>@transaction.Category</td>  
                     </tr>
                 }
             </tbody>

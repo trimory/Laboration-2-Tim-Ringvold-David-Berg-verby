@@ -39,11 +39,10 @@ namespace Laboration2MVC.Controllers
             {
                 Console.WriteLine($"Received form data: {string.Join(", ", model.CustomCategory.OriginalCategories)} -> {model.CustomCategory.NewCategory}");
 
-                await dbModel.CreateCustomCategory(model.CustomCategory.OriginalCategories[0], model.CustomCategory.NewCategory);
+                await dbModel.CreateCustomCategory(model.CustomCategory.OriginalCategories, model.CustomCategory.NewCategory);
                 TempData["Message"] = $"✅ Categories mapped to '{model.CustomCategory.NewCategory}' successfully!";
-                await dbModel.ReplaceReferences(model.CustomCategory.OriginalCategories, model.CustomCategory.NewCategory);
 
-                // ✅ Keep selected categories highlighted
+                await dbModel.ApplyCustomRulesToTransactions(); //Applies custom rules to server
                 model.SelectedCategories = model.CustomCategory.OriginalCategories;
             }
             catch
