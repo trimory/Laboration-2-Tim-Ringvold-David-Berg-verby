@@ -18,26 +18,14 @@
 
     @if (apiResponse != null)
     {
-        <div> 
-        <select class="form-select">
-                                <option value="1">Mat och Dryck</option>
-                                <option value="2">Räkningar och utbetalningar</option>
-                                <option value="3">Underhållning</option>
-                                <option value="4">Övrigt</option>
-                <button type="button"> Save changes</button>
-
-
-        </select>
-        <button type="button"> Save changes</button>
-        </div>
+       
         <table class="table">
             <thead>
                 <tr>
-                    <th>Välj Kategori </th>
                     <th>Transaktions-ID</th>
                     <th>Bokningsdatum</th>
                     <th>Transaktionsdatum</th>
-                    <th>Kategori</th>
+                    <th>Kategori(* indikerar ändring av användaren)</th>
                     <th>Belopp</th>
                     <th>Saldo efter transaktion</th>
                 </tr>
@@ -47,13 +35,19 @@
                 @foreach (var transaction in apiResponse)
                 {
                     <tr>
-                        <td>
-                            <input type="checkbox" id="@transaction.TransactionID" />
-                       </td>
+                        
                         <td>@transaction.TransactionID</td>
                         <td>@transaction.BookingDate</td>
                         <td>@transaction.TransactionDate</td>
-                        <td>@transaction.Reference</td>
+                        <td>@transaction.Reference
+                            @if(transaction.IsUserReferenceChanged == true)
+                            {
+                                <span>*</span>
+                            }
+
+
+                        </td>
+                        
                         <td>@transaction.Amount</td>
                         <td>@transaction.Balance</td>
                     </tr>

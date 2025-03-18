@@ -14,6 +14,28 @@ namespace Laboration2MVC.Models
             sqlite = new SqliteConnection($"Data Source={databaseFilePath}");
         }
 
+        public async Task<bool> IsDatabaseEmpty()
+        {
+            try
+            {
+                await sqlite.OpenAsync();
+                using var checkCount = sqlite.CreateCommand();
+                checkCount.CommandText = "SELECT COUNT(*) FROM transactions"; 
+
+                var count = (long)await checkCount.ExecuteScalarAsync();
+                return count == 0; 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error");
+                return true; 
+            }
+            finally
+            {
+                await sqlite.CloseAsync();
+            }
+        }
+
         async public Task CreateDatabase()
         {
             try
@@ -47,7 +69,6 @@ namespace Laboration2MVC.Models
             {
                 await sqlite.OpenAsync();
 
-                // Step 1: Create the table if it doesn't exist
                 using var createCustomCategory = sqlite.CreateCommand();
                 createCustomCategory.CommandText = @"
             CREATE TABLE IF NOT EXISTS CustomCategory 
@@ -68,6 +89,7 @@ namespace Laboration2MVC.Models
                 checkCategory.Parameters.AddWithValue("@OriginalCategory", originalCategory);
                 checkCategory.Parameters.AddWithValue("@NewCategory", newCategory);
 
+                //check if category already exists
                 var existingCount = (long)await checkCategory.ExecuteScalarAsync();
 
                 if (existingCount == 0)
@@ -99,6 +121,8 @@ namespace Laboration2MVC.Models
         {
             try
             {
+
+                // Merge this with create database
                 await sqlite.OpenAsync();
                 using var insertTransaction = sqlite.CreateCommand();
                 insertTransaction.CommandText = @"INSERT INTO transactions 
@@ -158,6 +182,59 @@ namespace Laboration2MVC.Models
                 await sqlite.CloseAsync();
             }
             return transactions;
+        }
+        public async Task<List<ReferenceModel>> GetUniqueReferences() //returns all unique references
+        {
+            List<ReferenceModel> references = new List<ReferenceModel>();
+
+            try
+            {
+                await sqlite.OpenAsync();
+                using var getUniqueReferences = sqlite.CreateCommand();
+                getUniqueReferences.CommandText = "SELECT DISTINCT Reference FROM transactions";
+
+                using var reader = await getUniqueReferences.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    references.Add(new ReferenceModel
+                    {
+                        Reference = reader.GetString(0) 
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error retrieving unique references: {ex.Message}");
+            }
+            finally
+            {
+                await sqlite.CloseAsync();
+            }
+
+            return references; 
+        }
+        public async Task ReplaceReferences(string oldReference, string newReference)
+        {
+            try
+            {
+                await sqlite.OpenAsync();
+                using var replaceReferences = sqlite.CreateCommand();
+                replaceReferences.CommandText = "UPDATE transactions " +
+                    "SET Reference = @newReference, IsUserReferenceChanged = 1 " + 
+                    "WHERE Reference = @oldReference"; 
+                replaceReferences.Parameters.AddWithValue("@newReference", newReference);
+                replaceReferences.Parameters.AddWithValue("@oldReference", oldReference);
+                await replaceReferences.ExecuteNonQueryAsync();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("could not replace references");
+                throw;
+            }
+            finally
+            {
+                await sqlite.CloseAsync();
+            }
         }
     }
 }

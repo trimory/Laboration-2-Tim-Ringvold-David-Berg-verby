@@ -6,7 +6,7 @@ namespace Laboration2MVC.Models
     {
         //fix unnecessary public access modifiers
 
-        public string OriginalCategory { get; set; }
-        public string NewCategory { get; set; }
+        public string OriginalCategory { get; set; } = string.Empty;
+        public string NewCategory { get; set; } = string.Empty;
     }
 }
