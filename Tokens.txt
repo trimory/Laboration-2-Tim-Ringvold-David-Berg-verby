@@ -27,3 +27,23 @@ http.setRequestProperty("Authorization", "Bearer 3821dadd2be2c2d1dca7da9381f8bd9
 
 System.out.println(http.getResponseCode() + " " + http.getResponseMessage());
 http.disconnect();
+
+
+[
+    {
+        "TransactionID": 57567,
+        "BookingDate": "2019-12-30",
+        "TransactionDate": "2019-12-29",
+        "Reference": "Uttag",
+        "Amount": -100,
+        "Balance": 4903.81
+    },
+    {
+        "TransactionID": 58352,
+        "BookingDate": "2019-12-30",
+        "TransactionDate": "2019-12-30",
+        "Reference": "Willys",
+        "Amount": -323.42,
+        "Balance": 4580.39
+    }
+]
