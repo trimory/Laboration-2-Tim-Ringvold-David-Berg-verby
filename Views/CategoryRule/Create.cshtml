@@ -1,0 +1,37 @@
+﻿@model CategoryRule
+@if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var modelState in ViewData.ModelState.Values)
+            {
+                foreach (var error in modelState.Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
+<h2>Skapa ny kategoriregel</h2>
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Keyword">Nyckelord:</label>
+        <input asp-for="Keyword" class="form-control" required />
+        <span asp-validation-for="Keyword" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="CategoryID">Kategori:</label>
+        <select asp-for="CategoryID" class="form-control" asp-items="ViewBag.Categories"></select>
+        <span asp-validation-for="CategoryID" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Spara</button>
+    <a href="@Url.Action("Index", "CategoryRule")" class="btn btn-secondary">Avbryt</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

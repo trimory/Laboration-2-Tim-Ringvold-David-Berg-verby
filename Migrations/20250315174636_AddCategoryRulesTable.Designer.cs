@@ -3,6 +3,7 @@ using System;
 using Laboration2_MVC.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,21 +11,24 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Laboration2_MVC.Migrations
 {
     [DbContext(typeof(TransactionDbContext))]
-    partial class TransactionDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250315174636_AddCategoryRulesTable")]
+    partial class AddCategoryRulesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.3");
 
-            modelBuilder.Entity("CategoryRule", b =>
+            modelBuilder.Entity("Laboration2_MVC.Models.CategoryRule", b =>
                 {
                     b.Property<int>("RuleID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("CategoryID")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Keyword")
                         .IsRequired()
@@ -32,24 +36,7 @@ namespace Laboration2_MVC.Migrations
 
                     b.HasKey("RuleID");
 
-                    b.HasIndex("CategoryID");
-
                     b.ToTable("CategoryRules");
-                });
-
-            modelBuilder.Entity("Laboration2_MVC.Models.Category", b =>
-                {
-                    b.Property<int>("CategoryID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("CategoryID");
-
-                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Transaction", b =>
@@ -87,17 +74,6 @@ namespace Laboration2_MVC.Migrations
                     b.HasKey("TransactionID");
 
                     b.ToTable("Transactions");
-                });
-
-            modelBuilder.Entity("CategoryRule", b =>
-                {
-                    b.HasOne("Laboration2_MVC.Models.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
                 });
 #pragma warning restore 612, 618
         }

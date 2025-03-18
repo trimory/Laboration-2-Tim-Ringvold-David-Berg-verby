@@ -1,18 +1,50 @@
 ﻿@model Transaction
 
-<h2>Redigera Kategori</h2>
+<h2>Redigera kategori</h2>
 
 <form asp-action="Edit" method="post">
     <input type="hidden" asp-for="TransactionID" />
+    <input type="hidden" asp-for="BookingDate" />
+    <input type="hidden" asp-for="TransactionDate" />
+    <input type="hidden" asp-for="Reference" />
+    <input type="hidden" asp-for="Amount" />
+    <input type="hidden" asp-for="Balance" />
 
-    <label>Referens:</label>
-    <input asp-for="Reference" readonly /><br>
+    <div>
+        <label>Bokföringsdatum:</label>
+        <input type="text" value="@Model.BookingDate.ToShortDateString()" readonly />
+    </div>
 
-    <label>Belopp:</label>
-    <input asp-for="Amount" readonly /><br>
+    <div>
+        <label>Transaktionsdatum:</label>
+        <input type="text" value="@Model.TransactionDate.ToShortDateString()" readonly />
+    </div>
 
-    <label for="Category">Kategori:</label>
-    <input asp-for="Category" required /><br>
+    <div>
+        <label>Referens:</label>
+        <input type="text" value="@Model.Reference" readonly />
+    </div>
+
+    <div>
+        <label>Belopp:</label>
+        <input type="text" value="@Model.Amount" readonly />
+    </div>
+
+    <div>
+        <label>Saldo:</label>
+        <input type="text" value="@Model.Balance" readonly />
+    </div>
+
+    <div>
+        <label>Kategori:</label>
+        <select asp-for="Category">
+            <option value="Övrigt">Övrigt</option>
+            <option value="Mat">Mat</option>
+            <option value="Transport">Transport</option>
+            <option value="Underhållning">Underhållning</option>
+            <option value="Shopping">Shopping</option>
+        </select>
+    </div>
 
     <button type="submit">Spara</button>
 </form>

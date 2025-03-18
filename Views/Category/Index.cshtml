@@ -1,0 +1,52 @@
+﻿@model List<Category>
+
+<h2>Kategorier</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Skapa ny kategori</a>
+    <a asp-controller="CategoryRule" asp-action="Index" class="btn btn-secondary">Visa kategoriregler</a>
+</p>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        Inga kategorier tillagda än.
+    </div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Namn</th>
+                <th>Åtgärder</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Model)
+            {
+                <tr>
+                    <td>@category.CategoryID</td>
+                    <td>@category.Name</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@category.CategoryID" class="btn btn-sm btn-warning">Redigera</a>
+                        <a asp-action="Delete" asp-route-id="@category.CategoryID" class="btn btn-sm btn-danger">Ta bort</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="mt-4">
+    <a asp-controller="Transactions" asp-action="Index" class="btn btn-secondary">Tillbaka till transaktioner</a>
+</div>
+

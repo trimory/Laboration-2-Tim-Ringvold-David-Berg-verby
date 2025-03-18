@@ -1,12 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Laboration2_MVC.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Laboration2_MVC.Models
+public class CategoryRule
 {
-    public class CategoryRule
-    {
-        [Key]
-        public int RuleID { get; set; }
-        public string Keyword { get; set; }  // Ex: "Willys" ska bli "Mat"
-        public string Category { get; set; }  // Ex: "Mat"
-    }
+    [Key]
+    public int RuleID { get; set; }
+
+    [Required(ErrorMessage = "Referens är obligatorisk.")]
+    public string Keyword { get; set; }  // Ex: "ICA", "SJ", "Spotify"
+
+    [Required(ErrorMessage = "Kategori är obligatorisk.")]
+    [ForeignKey("Category")]
+    public int CategoryID { get; set; }
+
+    public Category Category { get; set; }
 }

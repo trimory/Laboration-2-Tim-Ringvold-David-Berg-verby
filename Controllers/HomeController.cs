@@ -1,3 +1,4 @@
+using System.Text;
 using Laboration2_MVC.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;

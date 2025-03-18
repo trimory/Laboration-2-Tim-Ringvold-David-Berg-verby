@@ -2,11 +2,32 @@
 
 <h2>Transaktioner</h2>
 
-@if (ViewBag.ErrorMessage != null)
+@if (TempData["SuccessMessage"] != null)
 {
-    <p style="color:red;">@ViewBag.ErrorMessage</p>
+    <p style="color:green;">@TempData["SuccessMessage"]</p>
 }
-else if (Model == null || !Model.Any())
+@if (TempData["ErrorMessage"] != null)
+{
+    <p style="color:red;">@TempData["ErrorMessage"]</p>
+}
+@if (TempData["Debug"] != null)
+{
+    <div style="background-color: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc; overflow-x: auto; max-height: 300px;">
+        <h4>Debug Information:</h4>
+        <pre style="white-space: pre-wrap;">@TempData["Debug"]</pre>
+    </div>
+}
+
+<form asp-action="RefreshTransactions" method="post">
+    <button type="submit" class="btn btn-danger">Uppdatera Transaktioner</button>
+</form>
+<a href="@Url.Action("MassEdit", "Transactions")">Massredigera kategorier</a>
+
+<a href="@Url.Action("Create", "CategoryRule")">Lägg till ny kategoriseringsregel</a>
+
+
+
+@if (Model == null || !Model.Any())
 {
     <p>Inga transaktioner tillgängliga.</p>
 }
@@ -34,7 +55,7 @@ else
                 <td>@t.Balance</td>
                 <td>@t.Category</td>
                 <td>
-                    <a href="@Url.Action("Edit", "Transaction", new { id = t.TransactionID })">
+                    <a href="@Url.Action("Edit", "Transactions", new { id = t.TransactionID })">
                         ✏️ Redigera
                     </a>
                 </td>

@@ -1,0 +1,46 @@
+﻿@model List<CategoryRule>
+
+<h2>Kategoriseringsregler</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Lägg till ny regel</a>
+    <a asp-controller="Category" asp-action="Index" class="btn btn-secondary">Hantera kategorier</a>
+    <a asp-controller="Transactions" asp-action="Index" class="btn btn-secondary">Tillbaka till transaktioner</a>
+</p>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Inga regler tillagda än.</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sökord</th>
+                <th>Kategori</th>
+                <th>Åtgärder</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rule in Model)
+            {
+                <tr>
+                    <td>@rule.Keyword</td>
+                    <td>@(rule.Category?.Name ?? "Okänd kategori")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@rule.RuleID" class="btn btn-sm btn-warning">✏️ Redigera</a>
+                        <a asp-action="Delete" asp-route-id="@rule.RuleID" class="btn btn-sm btn-danger">🗑️ Radera</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
