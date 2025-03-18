@@ -7,5 +7,12 @@
         public List<ReferenceModel> ReferenceList { get; set; } = new List<ReferenceModel>();
 
         public List<string> SelectedCategories { get; set; } = new List<string>();
+
+        public TransactionCategoryModel TransactionCategory { get; set; } = new TransactionCategoryModel();
+
+        public List<TransactionModel> Transactions { get; set; } = new(); 
+
+
+
     }
 }

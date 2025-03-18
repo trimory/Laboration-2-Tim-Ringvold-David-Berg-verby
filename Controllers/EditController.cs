@@ -18,7 +18,21 @@ namespace Laboration2MVC.Controllers
         {
             var model = new EditViewModel
             {
-                ReferenceList = await dbModel.GetUniqueReferences() // ✅ Fetch unique references
+                ReferenceList = await dbModel.GetUniqueReferences(),
+            };
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditTransactionView()
+        {
+            Console.WriteLine("👋 GET EditTransactionView called");
+
+            var model = new EditViewModel
+            {
+                Transactions = await dbModel.GetTransactions(),
+                ReferenceList = await dbModel.GetUniqueReferences()
             };
 
             return View(model);
@@ -31,19 +45,18 @@ namespace Laboration2MVC.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["Message"] = "Invalid input. Please try again.";
-                model.ReferenceList = await dbModel.GetUniqueReferences(); // ✅ Reload options if form fails
+                model.ReferenceList = await dbModel.GetUniqueReferences(); 
                 return View(model);
             }
 
             try
             {
-                Console.WriteLine($"Received form data: {string.Join(", ", model.CustomCategory.OriginalCategories)} -> {model.CustomCategory.NewCategory}");
 
-                await dbModel.CreateCustomCategory(model.CustomCategory.OriginalCategories[0], model.CustomCategory.NewCategory);
+                //creates a custom category in the custom category table
+                await dbModel.CreateCustomCategory(model.CustomCategory.OriginalCategories, model.CustomCategory.NewCategory);
                 TempData["Message"] = $"✅ Categories mapped to '{model.CustomCategory.NewCategory}' successfully!";
-                await dbModel.ReplaceReferences(model.CustomCategory.OriginalCategories, model.CustomCategory.NewCategory);
 
-                // ✅ Keep selected categories highlighted
+                await dbModel.ApplyCustomRulesToTransactions(); //Applies custom rules to transactions database ca
                 model.SelectedCategories = model.CustomCategory.OriginalCategories;
             }
             catch
@@ -51,8 +64,40 @@ namespace Laboration2MVC.Controllers
                 TempData["Message"] = "❌ Error: Could not create category mappings.";
             }
 
-            model.ReferenceList = await dbModel.GetUniqueReferences(); // ✅ Ensure dropdown options reload
+            model.ReferenceList = await dbModel.GetUniqueReferences(); // Ensure dropdown options reload
             return View(model);
         }
+
+       
+
+        public async Task<IActionResult> EditTransactionView(EditViewModel model)
+        {
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Message"] = "Invalid input. Please try again.";
+                model.Transactions = await dbModel.GetTransactions();
+                return View(model);
+            }
+
+            try
+            {
+                await dbModel.CreateCustomCategoryTransactionID(model.TransactionCategory.TransactionID, model.TransactionCategory.Category);
+
+                await dbModel.ApplyCustomRulesToTransactions();
+                model.TransactionCategory.Category = model.TransactionCategory.Category;
+            }
+            catch
+            {
+                TempData["Message"] = "Could not create Custom Rules";
+            }
+
+            model.Transactions = await dbModel.GetTransactions();
+            return View("EditTransactionView", model);
+        }
+
+
+
+
     }
 }

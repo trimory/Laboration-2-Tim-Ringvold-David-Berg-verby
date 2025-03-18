@@ -8,6 +8,6 @@ namespace Laboration2MVC.Models
 
         public List<string> OriginalCategories { get; set; } = new List<string>();
         public string NewCategory { get; set; } = string.Empty;
-
     }
+    
 }

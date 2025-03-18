@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Data.Sqlite;
+using NuGet.Protocol.Plugins;
 using System.Text.Json;
 
 namespace Laboration2MVC.Models
@@ -14,42 +15,60 @@ namespace Laboration2MVC.Models
             sqlite = new SqliteConnection($"Data Source={databaseFilePath}");
         }
 
-        public async Task<bool> IsDatabaseEmpty()
+       async public Task DeleteAndUpdateDatabase()
         {
             try
             {
-                await sqlite.OpenAsync();
-                using var checkCount = sqlite.CreateCommand();
-                checkCount.CommandText = "SELECT COUNT(*) FROM transactions"; 
-
-                var count = (long)await checkCount.ExecuteScalarAsync();
-                return count == 0; 
+                if (File.Exists(databaseFilePath))
+                {
+                    File.Delete(databaseFilePath);
+                    Console.WriteLine("Database deleted");
+                }
+                else Console.WriteLine("Database does not exist");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine("error");
-                return true; 
-            }
-            finally
-            {
-                await sqlite.CloseAsync();
+                Console.WriteLine("error deleting database");
+                throw;
             }
         }
-
         async public Task CreateDatabase()
         {
             try
             {
                 if (!File.Exists(databaseFilePath))
                 {
+                    
                     await sqlite.OpenAsync();
-                    using var createTable = sqlite.CreateCommand();
-                    createTable.CommandText = @"CREATE TABLE IF NOT EXISTS transactions " +
+                    using var createTransactionTable = sqlite.CreateCommand();
+                    createTransactionTable.CommandText = @"CREATE TABLE IF NOT EXISTS transactions " +
                         "(TransactionID INTEGER PRIMARY KEY NOT NULL," +
                         " bookingDate TEXT, transactionDate TEXT NOT NULL," +
                         " Reference TEXT, Amount REAL, Balance REAL NOT NULL, " +
-                        "IsUserReferenceChanged BIT NOT NULL DEFAULT 0)";
-                    await createTable.ExecuteNonQueryAsync();
+                        "Category TEXT, " +
+                        "UserOverwrittenCategory BIT)";
+                    await createTransactionTable.ExecuteNonQueryAsync();
+
+
+                    using var CreateCustomCategory = sqlite.CreateCommand();
+                    CreateCustomCategory.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS CustomCategory 
+                    (
+                        OriginalCategory TEXT NOT NULL UNIQUE,
+                        NewCategory TEXT NOT NULL
+                    )";
+
+                    await CreateCustomCategory.ExecuteNonQueryAsync();
+
+                    using var CreateTransactionCategory = sqlite.CreateCommand();
+                    CreateTransactionCategory.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS TransactionCategory 
+                    (
+                        TransactionID INTEGER PRIMARY KEY NOT NULL,
+                        Category TEXT NOT NULL
+                    )";
+                    await CreateTransactionCategory.ExecuteNonQueryAsync();
+
                 }
                 else Console.WriteLine("Database already exists");
             }
@@ -63,56 +82,180 @@ namespace Laboration2MVC.Models
                 await sqlite.CloseAsync();
             }
         }
-        async public Task CreateCustomCategory(string originalCategory, string newCategory)
+        async public Task CreateCustomCategory(List<string> originalCategories, string newCategory)
         {
+            if (originalCategories == null || !originalCategories.Any())
+            {
+                throw new ArgumentException("originalCategories cannot be null or empty.");
+            }
+            if (string.IsNullOrEmpty(newCategory))
+            {
+                throw new ArgumentException("newCategory cannot be null or empty.");
+            }
+
+            using var connection = new SqliteConnection($"Data Source=userTransactions.db");
             try
             {
-                await sqlite.OpenAsync();
+                await connection.OpenAsync();
 
-                using var createCustomCategory = sqlite.CreateCommand();
-                createCustomCategory.CommandText = @"
-            CREATE TABLE IF NOT EXISTS CustomCategory 
-            (
-                OriginalCategory TEXT NOT NULL,
-                NewCategory TEXT NOT NULL,
-                UNIQUE (OriginalCategory, NewCategory)
-            )";
-                //initiate new table if none exists yet
-
-                await createCustomCategory.ExecuteNonQueryAsync();
-
-                using var checkCategory = sqlite.CreateCommand();
-                checkCategory.CommandText = @"
-                SELECT COUNT(*) FROM CustomCategory WHERE OriginalCategory = 
-                @OriginalCategory AND NewCategory = @NewCategory";
-
-                checkCategory.Parameters.AddWithValue("@OriginalCategory", originalCategory);
-                checkCategory.Parameters.AddWithValue("@NewCategory", newCategory);
-
-                //check if category already exists
-                var existingCount = (long)await checkCategory.ExecuteScalarAsync();
-
-                if (existingCount == 0)
-                {
-                    using var insertCategory = sqlite.CreateCommand();
-                    insertCategory.CommandText = @"
-                INSERT INTO CustomCategory (OriginalCategory, NewCategory) 
-                VALUES (@OriginalCategory, @NewCategory)";
-
-                    insertCategory.Parameters.AddWithValue("@OriginalCategory", originalCategory);
-                    insertCategory.Parameters.AddWithValue("@NewCategory", newCategory);
-
-                    await insertCategory.ExecuteNonQueryAsync();
-                }
                 
+                foreach (var originalCategory in originalCategories)
+                {
+                    using var upsertCommand = connection.CreateCommand();
+                    upsertCommand.CommandText = @"
+                        INSERT OR IGNORE INTO CustomCategory (OriginalCategory, NewCategory)
+                        VALUES (@OriginalCategory, @NewCategory);
+                        UPDATE CustomCategory
+                        SET NewCategory = @NewCategory
+                        WHERE OriginalCategory = @OriginalCategory";
+                    upsertCommand.Parameters.AddWithValue("@OriginalCategory", originalCategory);
+                    upsertCommand.Parameters.AddWithValue("@NewCategory", newCategory);
+                    await upsertCommand.ExecuteNonQueryAsync();
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine($"error, could not write");
+                Console.WriteLine($"Could not upsert custom categories: {ex.Message}");
                 throw;
             }
             finally
             {
+                await sqlite.CloseAsync();
+            }
+        }
+
+        async public Task<List<CustomCategoryModel>> GetCustomRules()
+        {
+            List<CustomCategoryModel> customCategories = new List<CustomCategoryModel>();
+            try
+            {
+                await sqlite.OpenAsync();
+                using var getCustomCategories = sqlite.CreateCommand();
+                getCustomCategories.CommandText = "SELECT * FROM CustomCategory";
+                using var reader = await getCustomCategories.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var originalCategoriesString = reader.GetString(0);
+                    var originalCategoriesList = originalCategoriesString.Split(',')
+                        .Select(s => s.Trim())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
+                    var newCategory = reader.GetString(1);
+                    customCategories.Add(new CustomCategoryModel
+                    {
+                        OriginalCategories = originalCategoriesList,
+                        NewCategory = newCategory
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("could not retrieve custom categories");
+                throw;
+            }
+            finally
+            {
+                await sqlite.CloseAsync();
+            }
+            return customCategories;
+        }
+
+        async public Task<List<TransactionCategoryModel>> GetTransactionRules()
+        {
+            List<TransactionCategoryModel> customCategories = new List<TransactionCategoryModel>();
+            try
+            {
+                await sqlite.OpenAsync();
+                using var getCustomCategories = sqlite.CreateCommand();
+                getCustomCategories.CommandText = "SELECT * FROM TransactionCategory";
+                using var reader = await getCustomCategories.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var transactionId = reader.GetInt32(0); 
+                    var category = reader.GetString(1);    
+
+                    customCategories.Add(new TransactionCategoryModel
+                    {
+                        TransactionID = transactionId,
+                        Category = category
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("could not retrieve custom categories");
+                throw;
+            }
+            finally
+            {
+                await sqlite.CloseAsync();
+            }
+            return customCategories;
+        }
+
+        public async Task ApplyCustomRulesToTransactions()
+        {
+
+            //updates transaction categories based on custom rules
+
+            var CustomCategoryRules = await GetCustomRules();
+            
+            try
+            {
+                await sqlite.OpenAsync();
+
+                foreach (var rule in CustomCategoryRules)
+                {
+                    foreach (var oldReference in rule.OriginalCategories)
+                    {
+                        using var command = sqlite.CreateCommand();
+                        command.CommandText = @"
+                            UPDATE transactions
+                            SET Category = @newCategory
+                            WHERE Reference = @oldReference AND UserOverWrittenCategory = 0";
+
+                        command.Parameters.AddWithValue("@newCategory", rule.NewCategory);
+                        command.Parameters.AddWithValue("@oldReference", oldReference);
+
+                        await command.ExecuteNonQueryAsync();
+                    }
+                }
+                Console.WriteLine(" applied custom rules to transactions.");
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Could not apply custom rules to transactions.´");
+                throw;
+            }
+
+            //updates individual transaction overrides
+            var TransactionCategoryRules = await GetTransactionRules();
+            try
+            {
+                await sqlite.OpenAsync();
+                foreach (var rule in TransactionCategoryRules)
+                {
+                    using var command = sqlite.CreateCommand();
+                    command.CommandText = @"
+                        UPDATE transactions
+                        SET Category = @newCategory, UserOverwrittenCategory = 1
+                        WHERE TransactionID = @transactionID";
+                    command.Parameters.AddWithValue("@newCategory", rule.Category);
+                    command.Parameters.AddWithValue("@transactionID", rule.TransactionID);
+                    await command.ExecuteNonQueryAsync();
+                }
+                Console.WriteLine("Successfully applied custom rules to transactions.");
+            }
+            catch (Exception)
+            {
+                Console.WriteLine( "Could not apply custom rules to transactions. ");
+                throw;
+            }
+            
+
+            finally
+            {
+                // 5) Close the connection
                 await sqlite.CloseAsync();
             }
         }
@@ -122,18 +265,21 @@ namespace Laboration2MVC.Models
             try
             {
 
-                // Merge this with create database
                 await sqlite.OpenAsync();
                 using var insertTransaction = sqlite.CreateCommand();
                 insertTransaction.CommandText = @"INSERT INTO transactions 
-                (bookingDate, transactionDate, Reference, Amount, Balance, IsUserReferenceChanged) " +
-                    "VALUES (@bookingDate, @transactionDate, @Reference, @Amount, @Balance, @IsUserReferenceChanged)";
+                (TransactionID, bookingDate, transactionDate, Reference, Amount, Balance, Category, UserOverwrittenCategory) 
+                VALUES (@TransactionID, @bookingDate, @transactionDate, @Reference,
+                @Amount, @Balance, @Category, @UserOverwrittenCategory)";
+                insertTransaction.Parameters.AddWithValue("@TransactionID", transaction.TransactionID);
                 insertTransaction.Parameters.AddWithValue("@bookingDate", transaction.BookingDate);
                 insertTransaction.Parameters.AddWithValue("@transactionDate", transaction.TransactionDate);
                 insertTransaction.Parameters.AddWithValue("@Reference", transaction.Reference);
                 insertTransaction.Parameters.AddWithValue("@Amount", transaction.Amount);
                 insertTransaction.Parameters.AddWithValue("@Balance", transaction.Balance);
-                insertTransaction.Parameters.AddWithValue("@IsUserReferenceChanged", transaction.IsUserReferenceChanged ? 1 : 0); //stores true and false values as bit 1 and 0
+                insertTransaction.Parameters.AddWithValue("@Category", transaction.Category);
+                //converts bool to int, here represented as bit 
+                insertTransaction.Parameters.AddWithValue("@UserOverwrittenCategory", transaction.UserOverwrittenCategory ? 1 : 0);
                 await insertTransaction.ExecuteNonQueryAsync();
             }
             catch (Exception)
@@ -148,6 +294,8 @@ namespace Laboration2MVC.Models
 
 
         }
+
+       
         public async Task<List<TransactionModel>> GetTransactions()
         {
             List<TransactionModel> transactions = new List<TransactionModel>();
@@ -167,7 +315,11 @@ namespace Laboration2MVC.Models
                         Reference = reader.GetString(3),
                         Amount = reader.GetDouble(4),
                         Balance = reader.GetDouble(5),
-                        IsUserReferenceChanged = reader.GetInt32(6) == 1 //converts 1 to true, 0 to false as this value is stored as a bit
+                        Category = reader.GetString(6),
+                        UserOverwrittenCategory = reader.GetInt32(7) == 1 //converts the bit representation of the
+                                                                          //bool in the database to a bool
+
+
 
                     });
                 }
@@ -213,26 +365,40 @@ namespace Laboration2MVC.Models
 
             return references; 
         }
-        public async Task ReplaceReferences(List<string> oldReferences, string newReference)
+
+        async public Task CreateCustomCategoryTransactionID(int TransactionID, string newCategory) 
         {
+            if (TransactionID == 0)
+            {
+                throw new ArgumentException("TransactionID cannot be null or empty.");
+            }
+            if (string.IsNullOrEmpty(newCategory))
+            {
+                throw new ArgumentException("newCategory cannot be null or empty.");
+            }
+
+            using var connection = new SqliteConnection($"Data Source=userTransactions.db");
             try
             {
-                await sqlite.OpenAsync();
+                await connection.OpenAsync();
 
-                foreach (var oldReference in oldReferences)
-                {
-                    using var replaceReferences = sqlite.CreateCommand();
-                    replaceReferences.CommandText = "UPDATE transactions " +
-                        "SET Reference = @newReference, IsUserReferenceChanged = 1 " +
-                        "WHERE Reference = @oldReference";
-                    replaceReferences.Parameters.AddWithValue("@newReference", newReference);
-                    replaceReferences.Parameters.AddWithValue("@oldReference", oldReference);
-                    await replaceReferences.ExecuteNonQueryAsync();
-                }
+
+               
+                using var UpdateTransaction = connection.CreateCommand();
+                UpdateTransaction.CommandText = @"
+                    INSERT OR IGNORE INTO TransactionCategory (TransactionID, Category)
+                    VALUES (@TransactionID, @Category);
+                    UPDATE TransactionCategory
+                    SET NewCategory = @Category
+                    WHERE TransactionID = @TransactionID";
+                UpdateTransaction.Parameters.AddWithValue("@TransactionID", TransactionID);
+                UpdateTransaction.Parameters.AddWithValue("@Category", newCategory);
+                await UpdateTransaction.ExecuteNonQueryAsync();
+                
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine("❌ Could not replace references");
+                Console.WriteLine($"Failed to update custom transaction categories");
                 throw;
             }
             finally
@@ -240,5 +406,7 @@ namespace Laboration2MVC.Models
                 await sqlite.CloseAsync();
             }
         }
+
+
     }
 }
