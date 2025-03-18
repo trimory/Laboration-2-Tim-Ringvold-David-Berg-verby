@@ -1,43 +1,29 @@
 ﻿@using System.Text.Json;
 @using Laboration2MVC.Models;
-
+@model EditViewModel;
 @{
     ViewData["Title"] = "Transaktioner";
-    var apiResponse = ViewData["apiResult"] as List<TransactionModel>;
+    var apiResponse = Model.Transactions;
 }
 
 <div class="text-center">
     <h1 class="display-3">Välkommen till Stuxnets bank!</h1
-        <div class="d-flex justify-content-center gap-3 my-4">
-    <a asp-controller="Edit" asp-action="EditView" class="btn btn-primary">
-        Tilldela kategorier till betalningsreferenser
-    </a>
-    
-    <a asp-controller="Edit" asp-action="EditTransactionView" class="btn btn-secondary">
-        Tilldela kategorier till specifika transaktioner
-    </a>
-    <form asp-action="DeleteAndRedirect" asp-controller="API" method="post" class="mb-4">
-    <button type="submit" class="btn btn-danger">
-        Radera egna kategorier
-    </button>
-    </form>
-    <form asp-action="UpdateTransactionsFromAPI" asp-controller="API" method="post" class="mb-4">
-    <button type="submit" class="btn btn-primary">
-        Uppdatera API
-    </button>
-    </form>
+        <h2>
+        <a asp-controller="API" asp-action="TransactionView">
+            Klicka här att återgå till transaktionslistan i visningsläge
 
-</div>
-
+        </a>
+    </h2>
     <h2>Transaktionshistorik:</h2>
 
     @if (apiResponse != null)
     {
-             
-
+       Console.WriteLine(apiResponse);
+       
         <table class="table">
             <thead>
                 <tr>
+                    <th>Ändra kategori</th>
                     <th>Transaktions-ID</th>
                     <th>Bokningsdatum</th>
                     <th>Transaktionsdatum</th>
@@ -51,8 +37,15 @@
 
                 @foreach (var transaction in apiResponse)
                 {
+                    Console.WriteLine(transaction.TransactionID);
                     <tr>
-                        
+                        <td>
+                            <form asp-action="EditTransactionView" method="post">
+                            <input asp-for="TransactionCategory.TransactionID" input type="hidden" value="@transaction.TransactionID" />
+                            <input name="TransactionCategory.Category" class="form-control" required placeholder="Ange ny kategori" autocomplete="off" value="" />
+                                <button type="submit" class="btn btn-primary">Spara</button>
+                            </form> 
+                        </td>
                         <td>@transaction.TransactionID</td>
                         <td>@transaction.BookingDate</td>
                         <td>@transaction.TransactionDate</td>

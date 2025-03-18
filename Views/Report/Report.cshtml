@@ -1,0 +1,70 @@
+﻿@model ReportViewModel
+
+@{
+    ViewData["Title"] = "Transaktionsrapport";
+}
+
+<div class="container">
+    <h1>Transaktionsrapport</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a asp-action="DownloadReportXml" class="btn btn-primary">
+                <i class="bi bi-download"></i> Ladda ned som XML
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Totala inkomster</h5>
+                    <h2>@Model.TotalIncome.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Totala utgifter</h5>
+                    <h2>@Model.TotalExpense.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card @(Model.Balance >= 0 ? "bg-info" : "bg-warning") text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Balans</h5>
+                    <h2>@Model.Balance.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Kategorisummering</h2>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Kategori</th>
+                <th>Inkomster</th>
+                <th>Utgifter</th>
+                <th>Balans</th>
+                <th>Antal transaktioner</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Model.CategorySummaries)
+            {
+                <tr>
+                    <td>@category.CategoryName</td>
+                    <td class="text-success">@(category.Income > 0 ? category.Income.ToString("C") : "")</td>
+                    <td class="text-danger">@(category.Expense < 0 ? category.Expense.ToString("C") : "")</td>
+                    <td class="@(category.Balance >= 0 ? "text-success" : "text-danger")">@category.Balance.ToString("C")</td>
+                    <td>@category.TransactionCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
