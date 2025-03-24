@@ -78,6 +78,7 @@ namespace Laboration2MVC.Controllers
                             {
                                 await dbModel.InsertTransaction(transaction);
                             }
+                            await ApplyDefaultRules();
                         }
                     }
                     catch(Exception)
