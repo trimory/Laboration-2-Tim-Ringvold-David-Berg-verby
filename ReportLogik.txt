@@ -1,0 +1,170 @@
+//Controller metoder (Dessa har jag i min TransactionController och nyttjar EF Core så de kan inte användas direkt i din dessvärre)
+        public async Task<IActionResult> Report()
+        {
+            var transactions = await _context.Transactions
+                .Include(t => t.Category)
+                .ToListAsync();
+
+            var report = GenerateReport(transactions);
+
+            return View(report);
+        }
+
+        private ReportViewModel GenerateReport(List<Transaction> transactions)
+        {
+            var report = new ReportViewModel();
+
+            // Beräkna total inkomst och utgift
+            report.TotalIncome = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount);
+            report.TotalExpense = transactions.Where(t => t.Amount < 0).Sum(t => t.Amount);
+            report.Balance = report.TotalIncome + report.TotalExpense; // Utgifter är redan negativa
+
+            // Gruppera efter kategori
+            var categorySummaries = transactions
+                .GroupBy(t => t.Category?.Name ?? "Okänd")
+                .Select(g => new CategorySummary
+                {
+                    CategoryName = g.Key,
+                    Income = g.Where(t => t.Amount > 0).Sum(t => t.Amount),
+                    Expense = g.Where(t => t.Amount < 0).Sum(t => t.Amount),
+                    Balance = g.Sum(t => t.Amount),
+                    TransactionCount = g.Count()
+                })
+                .OrderByDescending(c => c.Balance)
+                .ToList();
+
+            report.CategorySummaries = categorySummaries;
+
+            return report;
+        }
+
+        public async Task<IActionResult> DownloadReportXml()
+        {
+            var transactions = await _context.Transactions
+                .Include(t => t.Category)
+                .ToListAsync();
+
+            var report = GenerateReport(transactions);
+
+            // Serialisera till XML
+            var serializer = new XmlSerializer(typeof(ReportViewModel));
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream, Encoding.UTF8);
+
+            serializer.Serialize(streamWriter, report);
+
+            memoryStream.Position = 0;
+
+            // Skapa filnamn med datum
+            var fileName = $"TransaktionsRapport_{DateTime.Now:yyyy-MM-dd}.xml";
+
+            // Returnera XML-filen för nedladdning
+            return File(memoryStream.ToArray(), "application/xml", fileName);
+        }
+
+
+
+
+
+//Model för ReportViewModel
+using System;
+using System.Collections.Generic;
+using System.Xml.Serialization;
+
+namespace Laboration2_MVC_2._0.Models
+{
+    [XmlRoot("TransactionReport")]
+    public class ReportViewModel
+    {
+        public decimal TotalIncome { get; set; }
+        public decimal TotalExpense { get; set; }
+        public decimal Balance { get; set; }
+
+        [XmlElement("CategorySummaries")]
+        public List<CategorySummary> CategorySummaries { get; set; } = new List<CategorySummary>();
+    }
+
+    public class CategorySummary
+    {
+        [XmlAttribute("Name")]
+        public string CategoryName { get; set; }
+
+        public decimal Income { get; set; }
+        public decimal Expense { get; set; }
+        public decimal Balance { get; set; }
+        public int TransactionCount { get; set; }
+    }
+}
+
+
+// View
+@model Laboration2_MVC_2._0.Models.ReportViewModel
+
+@{
+    ViewData["Title"] = "Transaktionsrapport";
+}
+
+<div class="container">
+    <h1>Transaktionsrapport</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a asp-action="DownloadReportXml" class="btn btn-primary">
+                <i class="bi bi-download"></i> Ladda ned som XML
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Totala inkomster</h5>
+                    <h2>@Model.TotalIncome.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Totala utgifter</h5>
+                    <h2>@Model.TotalExpense.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card @(Model.Balance >= 0 ? "bg-info" : "bg-warning") text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Balans</h5>
+                    <h2>@Model.Balance.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Kategorisummering</h2>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Kategori</th>
+                <th>Inkomster</th>
+                <th>Utgifter</th>
+                <th>Balans</th>
+                <th>Antal transaktioner</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in Model.CategorySummaries)
+            {
+                <tr>
+                    <td>@category.CategoryName</td>
+                    <td class="text-success">@(category.Income > 0 ? category.Income.ToString("C") : "")</td>
+                    <td class="text-danger">@(category.Expense < 0 ? category.Expense.ToString("C") : "")</td>
+                    <td class="@(category.Balance >= 0 ? "text-success" : "text-danger")">@category.Balance.ToString("C")</td>
+                    <td>@category.TransactionCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
