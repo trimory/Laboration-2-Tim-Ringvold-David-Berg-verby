@@ -16,26 +16,41 @@ namespace Laboration2MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> EditView()
         {
-            var model = new EditViewModel
+            try
             {
-                ReferenceList = await dbModel.GetUniqueReferences(),
-            };
+                var model = new EditViewModel
+                {
+                    ReferenceList = await dbModel.GetUniqueReferences(),
+                };
+                return View(model);
 
-            return View(model);
+            }
+            catch
+            {
+                TempData["CatchError"] = "Could not access database, refresh";
+                return View();
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> EditTransactionView()
         {
-            Console.WriteLine("👋 GET EditTransactionView called");
 
-            var model = new EditViewModel
+            try
             {
-                Transactions = await dbModel.GetTransactions(),
-                ReferenceList = await dbModel.GetUniqueReferences()
-            };
+                var model = new EditViewModel
+                {
+                    Transactions = await dbModel.GetTransactions(),
+                    ReferenceList = await dbModel.GetUniqueReferences()
+                };
 
-            return View(model);
+                return View(model);
+            }
+            catch
+            {
+                TempData["CatchError"] = "Could not access database, refresh";
+                return View();
+            }
         }
 
         [HttpPost]

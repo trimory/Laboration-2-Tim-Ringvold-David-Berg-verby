@@ -154,41 +154,41 @@ namespace Laboration2MVC.Models
             }
         }
 
-        async public Task<List<CustomCategoryModel>> GetCustomRules()
+        public async Task<List<CustomCategoryModel>> GetCustomRules()
         {
             using var connection = new SqliteConnection($"Data Source={databaseFilePath}");
 
-            List<CustomCategoryModel> customCategories = new List<CustomCategoryModel>();
+            var customCategories = new List<CustomCategoryModel>();
             try
             {
                 await connection.OpenAsync();
                 using var getCustomCategories = connection.CreateCommand();
-                getCustomCategories.CommandText = "SELECT * FROM CustomCategory";
+                getCustomCategories.CommandText = "SELECT OriginalCategory, NewCategory FROM CustomCategory";
                 using var reader = await getCustomCategories.ExecuteReaderAsync();
+
                 while (await reader.ReadAsync())
                 {
-                    var originalCategoriesString = reader.GetString(0);
-                    var originalCategoriesList = originalCategoriesString.Split(',')
-                        .Select(s => s.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList();
+                    var originalCategory = reader.GetString(0);
                     var newCategory = reader.GetString(1);
+
                     customCategories.Add(new CustomCategoryModel
                     {
-                        OriginalCategories = originalCategoriesList,
+                        // Wrap single entry in list for compatibility
+                        OriginalCategories = new List<string> { originalCategory },
                         NewCategory = newCategory
                     });
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine("could not retrieve custom categories");
+                Console.WriteLine("Could not retrieve custom categories");
                 throw;
             }
             finally
             {
                 await connection.CloseAsync();
             }
+
             return customCategories;
         }
 
@@ -229,7 +229,6 @@ namespace Laboration2MVC.Models
 
         public async Task ApplyCustomRulesToTransactions()
         {
-            // Part 1: Update by reference using category‐based rules (only if not manually overridden)
             var customCategoryRules = await GetCustomRules();
             using (var connection = new SqliteConnection($"Data Source={databaseFilePath}"))
             {
@@ -457,6 +456,34 @@ namespace Laboration2MVC.Models
                 await connection.CloseAsync();
             }
         }
+        public async Task ApplyRulesToSingleTransaction(TransactionModel transaction)
+        {
+            var customCategoryRules = await GetCustomRules();
+            using var connection = new SqliteConnection($"Data Source={databaseFilePath}");
+            await connection.OpenAsync();
+
+            foreach (var rule in customCategoryRules)
+            {
+                foreach (var oldReference in rule.OriginalCategories)
+                {
+                    if (transaction.Reference == oldReference)
+                    {
+                        using var command = connection.CreateCommand();
+                        command.CommandText = @"
+                    UPDATE transactions
+                    SET Category = @newCategory
+                    WHERE TransactionID = @transactionID AND UserOverwrittenCategory = 0";
+                        command.Parameters.AddWithValue("@newCategory", rule.NewCategory);
+                        command.Parameters.AddWithValue("@transactionID", transaction.TransactionID);
+                        await command.ExecuteNonQueryAsync();
+                        break;
+                    }
+                }
+            }
+
+            await connection.CloseAsync();
+        }
+
 
 
     }
