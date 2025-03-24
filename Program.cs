@@ -17,20 +17,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 
-/*using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var dbModel = services.GetRequiredService<DatabaseModel>();
-
-    if (!System.IO.File.Exists(dbModel.databaseFilePath))
-    {
-        Console.WriteLine("⚙️ Database file missing. Creating a new one...");
-        await dbModel.CreateDatabase(); // ✅ Run in an async scope
-        Console.WriteLine("✅ Database created successfully.");
-    }
-}
-*/
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

@@ -59,7 +59,7 @@ namespace Laboration2MVC.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["Message"] = "Invalid input. Please try again.";
+                TempData["CatchError"] = "Invalid input. Please try again.";
                 model.ReferenceList = await dbModel.GetUniqueReferences(); 
                 return View(model);
             }
@@ -70,12 +70,12 @@ namespace Laboration2MVC.Controllers
                 //creates a custom category in the custom category table
                 await dbModel.CreateCustomCategory(model.CustomCategory.OriginalCategories, model.CustomCategory.NewCategory);
 
-                await dbModel.ApplyCustomRulesToTransactions(); //Applies custom rules to transactions database ca
+                await dbModel.ApplyCustomRulesToTransactions(); //Applies custom rules to transactions database 
                 model.SelectedCategories = model.CustomCategory.OriginalCategories;
             }
             catch
             {
-                TempData["Message"] = "Could not create referen";
+                TempData["CatchError"] = "Database write error";
             }
 
             model.ReferenceList = await dbModel.GetUniqueReferences(); // Ensure dropdown options reload
@@ -89,9 +89,8 @@ namespace Laboration2MVC.Controllers
 
             if (!ModelState.IsValid)
             {
-                TempData["Message"] = "Invalid input. Please try again.";
+                TempData["CatchError"] = "Invalid input. Please try again.";
 
-                model.Transactions = await dbModel.GetTransactions();
                 model.TransactionCategory.Category = string.Empty;
                 return View(model);
             }
@@ -104,7 +103,11 @@ namespace Laboration2MVC.Controllers
             }
             catch
             {
-                TempData["Message"] = "Could not create Custom Rules";
+                TempData["CatchError"] = "Could not create custom rules, data base error";
+
+                model.TransactionCategory.Category = string.Empty;
+                return View(model);
+
             }
 
             model.Transactions = await dbModel.GetTransactions();

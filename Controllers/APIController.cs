@@ -20,10 +20,9 @@ namespace Laboration2MVC.Controllers
                 await dbModel.CreateCustomCategory(new List<string> { "APOTEKET AB", "Apoteket/PayEx", "Sjukresa" }, "Sjukvård");
                 await dbModel.CreateCustomCategory(new List<string> { "Uttag", "Fk/pmynd" }, "Inkomster och uttag");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error in ApplyDefaultRules: {ex.Message}");
-                // Handle the exception, e.g., log it or show an error message
+                TempData["PopupError"] = "Error deleting database";
             }
         }
 
@@ -58,25 +57,33 @@ namespace Laboration2MVC.Controllers
             {
                 if (System.IO.File.Exists(dbModel.databaseFilePath))
                 {
-                    // if the DB file exists, check if it contains data
-                    bool isEmpty = await dbModel.CheckIfDatabaseEmpty();
-                    if (!isEmpty)
+                    try
                     {
-                        // Database has data—use it.
-                        transactions = await dbModel.GetTransactions();
-                        await dbModel.ApplyCustomRulesToTransactions();
-                        // Reload transactions to get the updated categories
-                        transactions = await dbModel.GetTransactions();
-                    }
-                    else
-                    {
-                        // File exists but DB is empty—fetch from API.
-                        transactions = await FetchTransactionsFromAPI();
-                        await dbModel.CreateDatabase();
-                        foreach (var transaction in transactions)
+                        // if the DB file exists, check if it contains data
+                        bool isEmpty = await dbModel.CheckIfDatabaseEmpty();
+                        if (!isEmpty)
                         {
-                            await dbModel.InsertTransaction(transaction);
+                            // Database has data—use it.
+                            transactions = await dbModel.GetTransactions();
+                            await dbModel.ApplyCustomRulesToTransactions();
+                            // Reload transactions to get the updated categories
+                            transactions = await dbModel.GetTransactions();
                         }
+                        else
+                        {
+                            // File exists but DB is empty—fetch from API.
+                            transactions = await FetchTransactionsFromAPI();
+                            await dbModel.CreateDatabase();
+                            foreach (var transaction in transactions)
+                            {
+                                await dbModel.InsertTransaction(transaction);
+                            }
+                        }
+                    }
+                    catch(Exception)
+                    {
+                        TempData["PopupError"] = "Error accessing database";
+                        return View();
                     }
                 }
                 else

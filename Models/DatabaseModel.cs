@@ -143,9 +143,9 @@ namespace Laboration2MVC.Models
                     await upsertCommand.ExecuteNonQueryAsync();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Could not upsert custom categories: {ex.Message}");
+                Console.WriteLine("Could not add Custom Categories");
                 throw;
             }
             finally
