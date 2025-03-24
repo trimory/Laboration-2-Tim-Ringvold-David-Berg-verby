@@ -10,16 +10,15 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>EditView</title>
-    <!-- Removed the <script> tag since it's no longer needed -->
 </head>
 <body>
-    <h4>Edit Category</h4>
+    <h4>Tilldela kategori</h4>
     <hr />
     <div class="row">
         <div class="col-md-4">
             <form asp-action="EditView" method="post">
                 <div class="form-group">
-                    <label for="originalCategoryDropdown">Select Original Categories(Use ctrl while clicking to add more than one category):</label>
+                    <label for="originalCategoryDropdown">Välj transaktionsreferens (använd ctrl och klicka på referenserna för att lägga till fler referenser till en kategori):</label>
                     <select id="originalCategoryDropdown" name="CustomCategory.OriginalCategories" class="form-control" multiple size="5">
                         @foreach (var reference in Model.ReferenceList)
                         {
@@ -29,11 +28,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="CustomCategory.NewCategory" class="control-label"></label>
+                    <label asp-for="CustomCategory.NewCategory" class="control-label">Kategori</label>
                     <input asp-for="CustomCategory.NewCategory" class="form-control" required placeholder="Ange ny kategori" />
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save Categories</button>
+                <button type="submit" class="btn btn-primary">Spara</button>
             </form>
         </div>
     </div>

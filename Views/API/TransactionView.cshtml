@@ -16,29 +16,28 @@
 }
 
 <div class="text-center">
-    <h1 class="display-3">Välkommen till Stuxnets bank!</h1
-        <div class="d-flex justify-content-center gap-3 my-4">
-    <a asp-controller="Edit" asp-action="EditView" class="btn btn-primary">
-        Tilldela kategorier till betalningsreferenser
-    </a>
-     <a asp-controller="Report" asp-action="Report" class="btn btn-primary">
-        Tilldela kategorier till betalningsreferenser
-    </a>
-    
-    <a asp-controller="Edit" asp-action="EditTransactionView" class="btn btn-secondary">
-        Tilldela kategorier till specifika transaktioner
-    </a>
-    <form asp-action="DeleteAndRedirect" asp-controller="API" method="post" class="mb-4">
-    <button type="submit" class="btn btn-danger">
-        Radera egna kategorier
-    </button>
-    </form>
-    <form asp-action="UpdateTransactionsFromAPI" asp-controller="API" method="post" class="mb-4">
-    <button type="submit" class="btn btn-primary">
-        Uppdatera API
-    </button>
-    </form>
-
+    <h1 class="display-3">Dina transaktioner</h1>
+    <div class="d-flex justify-content-center gap-3 my-4">
+        <a asp-controller="Edit" asp-action="EditView" class="btn btn-primary">
+            Tilldela kategorier till betalningsreferenser
+        </a>
+        <a asp-controller="Report" asp-action="Report" class="btn btn-success">
+            Transaktionsrapport
+        </a>
+        <a asp-controller="Edit" asp-action="EditTransactionView" class="btn btn-info">
+            Tilldela kategorier till specifika transaktioner
+        </a>
+        <form asp-action="DeleteAndRedirect" asp-controller="API" method="post" class="mb-4">
+            <button type="submit" class="btn btn-danger">
+                Radera egna kategorier
+            </button>
+        </form>
+        <form asp-action="UpdateTransactionsFromAPI" asp-controller="API" method="post" class="mb-4">
+            <button type="submit" class="btn btn-warning">
+                Uppdatera API
+            </button>
+        </form>
+    </div>
 </div>
 
     <h2>Transaktionshistorik:</h2>

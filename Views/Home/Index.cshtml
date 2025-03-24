@@ -5,17 +5,45 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-3">Välkommen till Stuxnets bank!</h1>
-    <h2>
-        <a asp-controller="API" asp-action="TransactionView">
-            Klicka här för att ta dig till din transaktionshistorik
+<div class="container py-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-3 mb-4">Välkommen till Stuxnets bank!</h1>
+            <p class="lead text-muted mb-5">Din ekonomi i trygga händer</p>
+        </div>
+    </div>
 
-        </a>
-        <a asp-controller="rEPORT" asp-action="Report">
-            Klicka här för att generera en rapport
+    <div class="row justify-content-center">
+        <div class="col-md-5 mb-4">
+            <div class="card h-100 shadow-sm border-0 rounded-lg">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-clock-history text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h3 class="card-title mb-3">Transaktionshistorik</h3>
+                    <p class="card-text text-muted mb-4">Se alla dina senaste transaktioner</p>
+                    <a asp-controller="API" asp-action="TransactionView" class="btn btn-primary px-4 py-2">
+                        Visa transaktioner
+                    </a>
+                </div>
+            </div>
+        </div>
 
-        </a>
-    </h2>
-
+        <div class="col-md-5 mb-4">
+            <div class="card h-100 shadow-sm border-0 rounded-lg">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-file-earmark-text text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h3 class="card-title mb-3">Generera rapport</h3>
+                    <p class="card-text text-muted mb-4">Skapa en fullständig rapport över dina ekonomiska aktiviteter</p>
+                    <a asp-controller="rEPORT" asp-action="Report" class="btn btn-primary px-4 py-2">
+                        Skapa rapport
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+
